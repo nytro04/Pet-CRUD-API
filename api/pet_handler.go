@@ -19,7 +19,7 @@ func NewPetHandler(store *db.Store) *PetHandler {
 	}
 }
 
-func (h *PetHandler) HandleCreatePet(c *fiber.Ctx) error {
+func (h *PetHandler) CreatePetHandler(c *fiber.Ctx) error {
 	var params types.CreatePetParams
 
 	if err := c.BodyParser(&params); err != nil {
@@ -40,4 +40,41 @@ func (h *PetHandler) HandleCreatePet(c *fiber.Ctx) error {
 	}
 
 	return c.Status(http.StatusCreated).JSON(pet)
+}
+
+func (h *PetHandler) GetPetHandler(c *fiber.Ctx) error {
+	id := c.Params("id")
+
+	pet, err := h.store.Pet.GetPet(c.Context(), id)
+	if err != nil {
+		return err
+	}
+
+	return c.JSON(pet)
+}
+
+func (h *PetHandler) UpdatePetHandler(c *fiber.Ctx) error {
+	var (
+		updatePayload *types.CreatePetParams
+		petId         = c.Params("id")
+	)
+
+	if err := c.BodyParser(&updatePayload); err != nil {
+		return err
+	}
+
+	err := h.store.Pet.UpdatePet(c.Context(), petId, updatePayload)
+	if err != nil {
+		return err
+	}
+
+	responsePayload := types.Pet{
+		ID:    petId,
+		Name:  updatePayload.Name,
+		Owner: updatePayload.Owner,
+		Type:  updatePayload.Type,
+		Age:   updatePayload.Age,
+	}
+
+	return c.JSON(responsePayload)
 }

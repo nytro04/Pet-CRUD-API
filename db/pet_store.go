@@ -9,6 +9,8 @@ import (
 
 type PetStore interface {
 	CreatePet(context.Context, *types.Pet) (*types.Pet, error)
+	UpdatePet(context.Context, string, *types.CreatePetParams) error
+	GetPet(context.Context, string) (*types.Pet, error)
 	Close() error
 }
 
@@ -58,4 +60,41 @@ func (s *PetStorage) CreatePet(ctx context.Context, pet *types.Pet) (*types.Pet,
 	}
 
 	return pet, nil
+}
+
+func (s *PetStorage) GetPet(ctx context.Context, id string) (*types.Pet, error) {
+	query := `
+		SELECT id, name, owner, type, age, created_at
+		FROM pet
+		WHERE id = $1
+	`
+
+	var pet types.Pet
+
+	err := s.db.QueryRowContext(ctx, query, id).Scan(
+		&pet.ID,
+		&pet.Name,
+		&pet.Owner,
+		&pet.Type,
+		&pet.Age,
+		&pet.CreatedAt,
+	)
+	if err != nil {
+		return nil, err
+	}
+
+	return &pet, nil
+}
+
+func (s *PetStorage) UpdatePet(ctx context.Context, id string, pet *types.CreatePetParams) error {
+	query := `UPDATE pet
+		SET name = $1, owner = $2, type = $3, age = $4
+		WHERE id = $5
+	`
+	_, err := s.db.ExecContext(ctx, query, pet.Name, pet.Owner, pet.Type, pet.Age, id)
+	if err != nil {
+		return err
+	}
+
+	return nil
 }
