@@ -53,6 +53,14 @@ func (h *PetHandler) GetPetHandler(c *fiber.Ctx) error {
 	return c.JSON(pet)
 }
 
+func (h *PetHandler) GetPetsHandler(c *fiber.Ctx) error {
+	pets, err := h.store.Pet.GetPets(c.Context())
+	if err != nil {
+		return err
+	}
+	return c.JSON(pets)
+}
+
 func (h *PetHandler) UpdatePetHandler(c *fiber.Ctx) error {
 	var (
 		updatePayload *types.CreatePetParams

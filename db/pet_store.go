@@ -11,6 +11,7 @@ type PetStore interface {
 	CreatePet(context.Context, *types.Pet) (*types.Pet, error)
 	UpdatePet(context.Context, string, *types.CreatePetParams) error
 	GetPet(context.Context, string) (*types.Pet, error)
+	GetPets(context.Context) ([]*types.Pet, error)
 	Close() error
 }
 
@@ -84,6 +85,32 @@ func (s *PetStorage) GetPet(ctx context.Context, id string) (*types.Pet, error) 
 	}
 
 	return &pet, nil
+}
+
+func (s *PetStorage) GetPets(ctx context.Context) ([]*types.Pet, error) {
+	query := `SELECT id, name, owner, type, age, created_at
+						FROM pet
+`
+	rows, err := s.db.QueryContext(ctx, query)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+
+	var pets []*types.Pet
+	for rows.Next() {
+		var pet types.Pet
+		err := rows.Scan(&pet.ID, &pet.Name, &pet.Owner, &pet.Type, &pet.Age, &pet.CreatedAt)
+		if err != nil {
+			return nil, err
+		}
+		pets = append(pets, &pet)
+	}
+
+	if rows.Err() != nil {
+		return nil, rows.Err()
+	}
+	return pets, nil
 }
 
 func (s *PetStorage) UpdatePet(ctx context.Context, id string, pet *types.CreatePetParams) error {
