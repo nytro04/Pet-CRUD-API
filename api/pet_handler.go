@@ -42,10 +42,10 @@ func (h *PetHandler) CreatePetHandler(c *fiber.Ctx) error {
 	return c.Status(http.StatusCreated).JSON(pet)
 }
 
-func (h *PetHandler) GetPetHandler(c *fiber.Ctx) error {
+func (h *PetHandler) GetPetByIdHandler(c *fiber.Ctx) error {
 	id := c.Params("id")
 
-	pet, err := h.store.Pet.GetPet(c.Context(), id)
+	pet, err := h.store.Pet.GetPetById(c.Context(), id)
 	if err != nil {
 		return err
 	}
@@ -71,7 +71,14 @@ func (h *PetHandler) UpdatePetHandler(c *fiber.Ctx) error {
 		return err
 	}
 
-	err := h.store.Pet.UpdatePet(c.Context(), petId, updatePayload)
+	// @TODO: add ternary like to use pet or payload
+	// pet, err := h.store.Pet.GetPetById(c.Context(), petId)
+	_, err := h.store.Pet.GetPetById(c.Context(), petId)
+	if err != nil {
+		return err
+	}
+
+	err = h.store.Pet.UpdatePet(c.Context(), petId, updatePayload)
 	if err != nil {
 		return err
 	}
@@ -85,4 +92,19 @@ func (h *PetHandler) UpdatePetHandler(c *fiber.Ctx) error {
 	}
 
 	return c.JSON(responsePayload)
+}
+
+func (h *PetHandler) DeleteHandler(c *fiber.Ctx) error {
+	petId := c.Params("id")
+	pet, err := h.store.Pet.GetPetById(c.Context(), petId)
+	if err != nil {
+		return err
+	}
+
+	_, err = h.store.Pet.DeletePet(c.Context(), petId)
+	if err != nil {
+		return err
+	}
+
+	return c.JSON(pet)
 }

@@ -44,9 +44,10 @@ func main() {
 
 	// Pet handlers
 	apiV1.Post("/pet", petHandler.CreatePetHandler)
-	apiV1.Get("/pet/:id", petHandler.GetPetHandler)
+	apiV1.Get("/pet/:id", petHandler.GetPetByIdHandler)
 	apiV1.Get("/pet", petHandler.GetPetsHandler)
 	apiV1.Patch("/pet/:id", petHandler.UpdatePetHandler)
+	apiV1.Delete("/pet/:id", petHandler.DeleteHandler)
 
 	listenAddr := os.Getenv("API_PORT")
 
