@@ -12,7 +12,13 @@ import (
 )
 
 func main() {
-	connStr := "user=postgres dbname=postgres password=petDBsecr3t sslmode=disable"
+	dbUser := os.Getenv("DB_USER")
+	dbName := os.Getenv("POSTGRES_DB_NAME")
+	dbPassword := os.Getenv("POSTGRES_DB_PASSWORD")
+
+	connStr := fmt.Sprintf(
+		"user=%s dbname=%s password=%s sslmode=disable", dbUser, dbName, dbPassword,
+	)
 
 	dbConn, err := db.NewDB(connStr)
 	if err != nil {
@@ -22,11 +28,6 @@ func main() {
 
 	defer dbConn.Close()
 	fmt.Println("database ok!!")
-
-	// petStore, err := db.NewPostgresPetStore(dbConn)
-	// petStore.
-	// if err != nil {
-	// }
 
 	petStore := db.NewPetStorage(dbConn)
 	petStore.Init()
