@@ -7,7 +7,8 @@ import (
 )
 
 type Store struct {
-	Pet *PetStorage
+	Pet  *PetStorage
+	User *UserStorage
 }
 
 func NewDB(connStr string) (*sql.DB, error) {

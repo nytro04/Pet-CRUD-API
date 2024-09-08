@@ -32,12 +32,17 @@ func main() {
 	petStore := db.NewPetStorage(dbConn)
 	petStore.Init()
 
+	userStore := db.NewUserStorage(dbConn)
+	userStore.Init()
+
 	var (
 		store = &db.Store{
-			Pet: petStore,
+			Pet:  petStore,
+			User: userStore,
 		}
 
-		petHandler = api.NewPetHandler(store)
+		petHandler  = api.NewPetHandler(store)
+		userHandler = api.NewUserHandler(store)
 
 		app   = fiber.New()
 		apiV1 = app.Group("/api/v1")
@@ -49,6 +54,13 @@ func main() {
 	apiV1.Get("/pet", petHandler.GetPetsHandler)
 	apiV1.Patch("/pet/:id", petHandler.UpdatePetHandler)
 	apiV1.Delete("/pet/:id", petHandler.DeleteHandler)
+
+	// User handlers
+	apiV1.Post("/user", userHandler.HandleCreateUser)
+	apiV1.Get("/user/:id", userHandler.HandleGetUser)
+	apiV1.Get("/user", userHandler.HandleGetUsers)
+	apiV1.Patch("/user/:id", userHandler.HandleUpdateUser)
+	apiV1.Delete("/user/:id", userHandler.HandleDeleteUser)
 
 	listenAddr := os.Getenv("API_PORT")
 
