@@ -31,7 +31,6 @@ type User struct {
 	LastName          string `json:"lastName"`
 	Email             string `json:"email"`
 	EncryptedPassword string `json:"-"` // dont add EncryptedPassword to the json response
-	IsAdmin           bool   `json:"isAdmin"`
 }
 
 func IsValidPassword(encryptedPassword, password string) bool {

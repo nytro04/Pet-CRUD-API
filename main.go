@@ -35,7 +35,6 @@ func main() {
 	}
 
 	defer dbConn.Close()
-	fmt.Println("database ok!!")
 
 	petStore := db.NewPetStorage(dbConn)
 	petStore.Init()

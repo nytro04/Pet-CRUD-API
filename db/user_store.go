@@ -32,13 +32,12 @@ func (s *UserStorage) Init() error {
 }
 
 func (s *UserStorage) createUserTable() error {
-	query := `create table if not exists pet (
+	query := `create table if not exists users (
 		id serial primary key,
 		FirstName varchar(100),
 		LastName varchar(100),
 		Email varchar(100),
-		age serial,
-		created_at timestamp
+		Password varchar(100)
 	)`
 
 	_, err := s.db.Exec(query)
@@ -47,8 +46,8 @@ func (s *UserStorage) createUserTable() error {
 
 func (s *UserStorage) CreateUser(ctx context.Context, user *types.User) (*types.User, error) {
 
-	query := `INSERT INTO user
-		(FirstName, LastName, Email, EncryptedPassword)
+	query := `INSERT INTO users
+		(firstName, lastName, email, password)
 		values ($1, $2, $3, $4)
 		RETURNING id
 	`
@@ -60,8 +59,8 @@ func (s *UserStorage) CreateUser(ctx context.Context, user *types.User) (*types.
 }
 
 func (s *UserStorage) GetUserByEmail(ctx context.Context, email string) (*types.User, error) {
-	query := `SELECT id, FirstName, LastName, Email, EncryptedPassword
-		FROM user
+	query := `SELECT id, firstName, lastName, email, password
+		FROM users
 		WHERE email = $1
 	`
 	var user types.User
@@ -74,8 +73,8 @@ func (s *UserStorage) GetUserByEmail(ctx context.Context, email string) (*types.
 }
 
 func (s *UserStorage) GetUserByID(ctx context.Context, id string) (*types.User, error) {
-	query := `SELECT id, FirstName, LastName, Email, EncryptedPassword
-		FROM user
+	query := `SELECT id, firstName, lastName, email, password
+		FROM users
 		WHERE id = $1
 	`
 	var user types.User
@@ -89,8 +88,8 @@ func (s *UserStorage) GetUserByID(ctx context.Context, id string) (*types.User, 
 }
 
 func (s *UserStorage) GetUsers(ctx context.Context) ([]*types.User, error) {
-	query := `SELECT id, FirstName, LastName, Email, EncryptedPassword
-		FROM user
+	query := `SELECT id, firstName, lastName, email, password
+		FROM users
 	`
 	rows, err := s.db.QueryContext(ctx, query)
 	if err != nil {
@@ -114,8 +113,8 @@ func (s *UserStorage) GetUsers(ctx context.Context) ([]*types.User, error) {
 }
 
 func (s *UserStorage) UpdateUser(ctx context.Context, id string, params *types.UpdateUserParams) error {
-	query := `UPDATE user
-		SET FirstName = $1, LastName = $2
+	query := `UPDATE users
+		SET firstName = $1, lastName = $2
 		WHERE id = $3
 	`
 	_, err := s.db.ExecContext(ctx, query, params.FirstName, params.LastName, id)
@@ -127,7 +126,7 @@ func (s *UserStorage) UpdateUser(ctx context.Context, id string, params *types.U
 }
 
 func (s *UserStorage) DeleteUser(ctx context.Context, id string) (*types.User, error) {
-	query := `DELETE FROM user
+	query := `DELETE FROM users
 		WHERE id = $1
 	`
 
