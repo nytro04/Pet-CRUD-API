@@ -12,9 +12,17 @@ import (
 )
 
 func main() {
-	dbUser := os.Getenv("DB_USER")
-	dbName := os.Getenv("POSTGRES_DB_NAME")
-	dbPassword := os.Getenv("POSTGRES_DB_PASSWORD")
+
+	var (
+		dbUser     = os.Getenv("DB_USER")
+		dbName     = os.Getenv("POSTGRES_DB_NAME")
+		dbPassword = os.Getenv("POSTGRES_DB_PASSWORD")
+	)
+
+	err := godotenv.Load()
+	if err != nil {
+		log.Fatal("failed to load env", err)
+	}
 
 	connStr := fmt.Sprintf(
 		"user=%s dbname=%s password=%s sslmode=disable", dbUser, dbName, dbPassword,
