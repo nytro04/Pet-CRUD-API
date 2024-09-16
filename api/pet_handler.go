@@ -5,7 +5,6 @@ import (
 	"net/http"
 	"time"
 
-	"github.com/gofiber/fiber/v2"
 	"github.com/nytro04/pet-crud/db"
 	"github.com/nytro04/pet-crud/types"
 )
@@ -89,58 +88,63 @@ func (h *PetHandler) GetPetsHandler(w http.ResponseWriter, r *http.Request) {
 	renderJSON(w, http.StatusOK, pets)
 }
 
-// func (h *PetHandler) GetPetsHandler(c *fiber.Ctx) error {
-// 	pets, err := h.store.Pet.GetPets(c.Context())
-// 	if err != nil {
-// 		return err
-// 	}
-// 	return c.JSON(pets)
-// }
+// UpdatePetHandler updates a pet
+func (h *PetHandler) UpdatePetHandler(w http.ResponseWriter, r *http.Request) {
+	if r.Method != http.MethodPatch {
+		w.Header().Set("Allow", http.MethodPatch)
+		http.Error(w, "Invalid request method", http.StatusMethodNotAllowed)
+		return
+	}
 
-func (h *PetHandler) UpdatePetHandler(c *fiber.Ctx) error {
 	var (
-		updatePayload *types.CreatePetParams
-		petId         = c.Params("id")
+		updatePayload types.CreatePetParams
+		petId         = r.PathValue("id")
 	)
 
-	if err := c.BodyParser(&updatePayload); err != nil {
-		return err
+	if err := json.NewDecoder(r.Body).Decode(&updatePayload); err != nil {
+		http.Error(w, err.Error(), http.StatusBadRequest)
+		return
 	}
 
-	// @TODO: add ternary like to use pet or payload
-	// pet, err := h.store.Pet.GetPetById(c.Context(), petId)
-	_, err := h.store.Pet.GetPetById(c.Context(), petId)
+	_, err := h.store.Pet.GetPetById(r.Context(), petId)
 	if err != nil {
-		return err
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
 	}
 
-	err = h.store.Pet.UpdatePet(c.Context(), petId, updatePayload)
+	// @TODO: fix bug: patch does not keep the unchanged fields, it sets them to zero values
+
+	err = h.store.Pet.UpdatePet(r.Context(), petId, &updatePayload)
 	if err != nil {
-		return err
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
 	}
 
-	responsePayload := types.Pet{
-		ID:    petId,
-		Name:  updatePayload.Name,
-		Owner: updatePayload.Owner,
-		Type:  updatePayload.Type,
-		Age:   updatePayload.Age,
-	}
-
-	return c.JSON(responsePayload)
+	// return JSON response
+	renderJSON(w, http.StatusOK, updatePayload)
 }
 
-func (h *PetHandler) DeleteHandler(c *fiber.Ctx) error {
-	petId := c.Params("id")
-	pet, err := h.store.Pet.GetPetById(c.Context(), petId)
-	if err != nil {
-		return err
+// DeleteHandler deletes a pet
+func (h *PetHandler) DeleteHandler(w http.ResponseWriter, r *http.Request) {
+	if r.Method != http.MethodDelete {
+		w.Header().Set("Allow", http.MethodDelete)
+		http.Error(w, "Invalid request method", http.StatusMethodNotAllowed)
+		return
 	}
 
-	_, err = h.store.Pet.DeletePet(c.Context(), petId)
+	id := r.PathValue("id")
+	pet, err := h.store.Pet.GetPetById(r.Context(), id)
 	if err != nil {
-		return err
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
 	}
 
-	return c.JSON(pet)
+	_, err = h.store.Pet.DeletePet(r.Context(), id)
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+
+	// return JSON response
+	renderJSON(w, http.StatusOK, pet)
 }

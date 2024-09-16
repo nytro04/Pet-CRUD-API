@@ -61,12 +61,8 @@ func main() {
 	mux.HandleFunc("POST /api/v1/pet/", petHandler.CreatePetHandler)
 	mux.HandleFunc("GET /api/v1/pet/{id}", petHandler.GetPetByIdHandler)
 	mux.HandleFunc("GET /api/v1/pet/", petHandler.GetPetsHandler)
-
-	// apiV1.Post("/pet", petHandler.CreatePetHandler)
-	// apiV1.Get("/pet/:id", petHandler.GetPetByIdHandler)
-	// apiV1.Get("/pet", petHandler.GetPetsHandler)
-	// apiV1.Patch("/pet/:id", petHandler.UpdatePetHandler)
-	// apiV1.Delete("/pet/:id", petHandler.DeleteHandler)
+	mux.HandleFunc("PATCH /api/v1/pet/{id}", petHandler.UpdatePetHandler)
+	mux.HandleFunc("DELETE /api/v1/pet/{id}", petHandler.DeleteHandler)
 
 	// // User handlers
 	// apiV1.Post("/user", userHandler.HandleCreateUser)
