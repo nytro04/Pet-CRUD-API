@@ -1,6 +1,9 @@
 package api
 
 import (
+	"encoding/json"
+	"net/http"
+
 	"github.com/gofiber/fiber/v2"
 	"github.com/nytro04/pet-crud/db"
 	"github.com/nytro04/pet-crud/types"
@@ -18,14 +21,19 @@ func NewUserHandler(userStore *db.Store) *UserHandler {
 }
 
 // User sign up
-func (h *UserHandler) HandleCreateUser(c *fiber.Ctx) error {
+func (h *UserHandler) HandleCreateUser(w http.ResponseWriter, r *http.Request) {
+	if r.Method != http.MethodPost {
+		w.Header().Set("Allow", http.MethodPost)
+		http.Error(w, "Invalid request method", http.StatusMethodNotAllowed)
+		return
+	}
 	var params types.CreateUserParams
-	if err := c.BodyParser(&params); err != nil {
-		return err
+
+	if err := json.NewDecoder(r.Body).Decode(&params); err != nil {
+		http.Error(w, err.Error(), http.StatusBadRequest)
+		return
 	}
-	if errors := params.Validate(); len(errors) > 0 {
-		return c.JSON(errors)
-	}
+
 	user := &types.User{
 		FirstName:         params.FirstName,
 		LastName:          params.LastName,
@@ -33,13 +41,39 @@ func (h *UserHandler) HandleCreateUser(c *fiber.Ctx) error {
 		EncryptedPassword: params.Password,
 	}
 
-	insertedUser, err := h.userStore.User.CreateUser(c.Context(), user)
+	insertedUser, err := h.userStore.User.CreateUser(r.Context(), user)
 	if err != nil {
-		return err
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
 	}
 
-	return c.JSON(insertedUser)
+	// return JSON response
+	renderJSON(w, http.StatusCreated, insertedUser)
 }
+
+// // User sign up
+// func (h *UserHandler) HandleCreateUser(c *fiber.Ctx) error {
+// 	var params types.CreateUserParams
+// 	if err := c.BodyParser(&params); err != nil {
+// 		return err
+// 	}
+// 	if errors := params.Validate(); len(errors) > 0 {
+// 		return c.JSON(errors)
+// 	}
+// 	user := &types.User{
+// 		FirstName:         params.FirstName,
+// 		LastName:          params.LastName,
+// 		Email:             params.Email,
+// 		EncryptedPassword: params.Password,
+// 	}
+
+// 	insertedUser, err := h.userStore.User.CreateUser(c.Context(), user)
+// 	if err != nil {
+// 		return err
+// 	}
+
+// 	return c.JSON(insertedUser)
+// }
 
 func (h *UserHandler) HandleGetUser(c *fiber.Ctx) error {
 	var (

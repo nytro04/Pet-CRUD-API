@@ -48,9 +48,8 @@ func main() {
 			User: userStore,
 		}
 
-		petHandler = api.NewPetHandler(store)
-		// userHandler = api.NewUserHandler(store)
-
+		petHandler  = api.NewPetHandler(store)
+		userHandler = api.NewUserHandler(store)
 	)
 
 	mux := http.NewServeMux()
@@ -62,7 +61,9 @@ func main() {
 	mux.HandleFunc("PATCH /api/v1/pet/{id}", petHandler.UpdatePetHandler)
 	mux.HandleFunc("DELETE /api/v1/pet/{id}", petHandler.DeleteHandler)
 
-	// // User handlers
+	// User handlers
+	mux.HandleFunc("POST /api/v1/user/", userHandler.HandleCreateUser)
+
 	// apiV1.Post("/user", userHandler.HandleCreateUser)
 	// apiV1.Get("/user/:id", userHandler.HandleGetUser)
 	// apiV1.Get("/user", userHandler.HandleGetUsers)
