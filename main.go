@@ -60,6 +60,7 @@ func main() {
 	// Pet handlers
 	mux.HandleFunc("POST /api/v1/pet/", petHandler.CreatePetHandler)
 	mux.HandleFunc("GET /api/v1/pet/{id}", petHandler.GetPetByIdHandler)
+	mux.HandleFunc("GET /api/v1/pet/", petHandler.GetPetsHandler)
 
 	// apiV1.Post("/pet", petHandler.CreatePetHandler)
 	// apiV1.Get("/pet/:id", petHandler.GetPetByIdHandler)

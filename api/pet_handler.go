@@ -71,24 +71,31 @@ func (h *PetHandler) GetPetByIdHandler(w http.ResponseWriter, r *http.Request) {
 	renderJSON(w, http.StatusOK, pet)
 }
 
-// func (h *PetHandler) GetPetByIdHandler(c *fiber.Ctx) error {
-// 	id := c.Params("id")
+// GetPetsHandler gets all pets
+func (h *PetHandler) GetPetsHandler(w http.ResponseWriter, r *http.Request) {
+	if r.Method != http.MethodGet {
+		w.Header().Set("Allow", http.MethodGet)
+		http.Error(w, "Invalid request method", http.StatusMethodNotAllowed)
+		return
+	}
 
-// 	pet, err := h.store.Pet.GetPetById(c.Context(), id)
+	pets, err := h.store.Pet.GetPets(r.Context())
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+
+	// return JSON response
+	renderJSON(w, http.StatusOK, pets)
+}
+
+// func (h *PetHandler) GetPetsHandler(c *fiber.Ctx) error {
+// 	pets, err := h.store.Pet.GetPets(c.Context())
 // 	if err != nil {
 // 		return err
 // 	}
-
-// 	return c.JSON(pet)
+// 	return c.JSON(pets)
 // }
-
-func (h *PetHandler) GetPetsHandler(c *fiber.Ctx) error {
-	pets, err := h.store.Pet.GetPets(c.Context())
-	if err != nil {
-		return err
-	}
-	return c.JSON(pets)
-}
 
 func (h *PetHandler) UpdatePetHandler(c *fiber.Ctx) error {
 	var (
