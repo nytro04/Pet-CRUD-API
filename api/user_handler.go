@@ -51,30 +51,6 @@ func (h *UserHandler) HandleCreateUser(w http.ResponseWriter, r *http.Request) {
 	renderJSON(w, http.StatusCreated, insertedUser)
 }
 
-// // User sign up
-// func (h *UserHandler) HandleCreateUser(c *fiber.Ctx) error {
-// 	var params types.CreateUserParams
-// 	if err := c.BodyParser(&params); err != nil {
-// 		return err
-// 	}
-// 	if errors := params.Validate(); len(errors) > 0 {
-// 		return c.JSON(errors)
-// 	}
-// 	user := &types.User{
-// 		FirstName:         params.FirstName,
-// 		LastName:          params.LastName,
-// 		Email:             params.Email,
-// 		EncryptedPassword: params.Password,
-// 	}
-
-// 	insertedUser, err := h.userStore.User.CreateUser(c.Context(), user)
-// 	if err != nil {
-// 		return err
-// 	}
-
-// 	return c.JSON(insertedUser)
-// }
-
 func (h *UserHandler) HandleGetUser(c *fiber.Ctx) error {
 	var (
 		id = c.Params("id")
