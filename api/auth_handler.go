@@ -1,17 +1,15 @@
 package api
 
 import (
-	"errors"
+	"encoding/json"
 	"fmt"
 	"net/http"
 	"os"
 	"time"
 
-	"github.com/gofiber/fiber/v2"
 	"github.com/golang-jwt/jwt/v5"
-	"github.com/nytro04/hotel-reservation/db"
-	"github.com/nytro04/hotel-reservation/types"
-	"go.mongodb.org/mongo-driver/mongo"
+	"github.com/nytro04/pet-crud/db"
+	"github.com/nytro04/pet-crud/types"
 )
 
 type AuthHandler struct {
@@ -40,30 +38,36 @@ func NewAuthHandler(userStore db.UserStore) *AuthHandler {
 	}
 }
 
-func invalidCredentials(c *fiber.Ctx) error {
-	return c.Status(http.StatusBadRequest).JSON(genericResp{
+func invalidCredentials(w http.ResponseWriter) {
+	renderJSON(w, http.StatusBadRequest, genericResp{
 		Type: "error",
 		Msg:  "invalid credentials",
 	})
 }
 
 // User sign in
-func (h *AuthHandler) HandleAuth(c *fiber.Ctx) error {
-	var params AuthParams
-	if err := c.BodyParser(&params); err != nil {
-		return err
+func (h *AuthHandler) HandleAuth(w http.ResponseWriter, r *http.Request) {
+	if r.Method != http.MethodPost {
+		w.Header().Set("Allow", http.MethodPost)
+		http.Error(w, "Invalid request method", http.StatusMethodNotAllowed)
+		return
 	}
 
-	user, err := h.userStore.GetUserByEmail(c.Context(), params.Email)
+	var params AuthParams
+	if err := json.NewDecoder(r.Body).Decode(&params); err != nil {
+		http.Error(w, err.Error(), http.StatusBadRequest)
+		return
+	}
+
+	user, err := h.userStore.GetUserByEmail(r.Context(), params.Email)
 	if err != nil {
-		if errors.Is(err, mongo.ErrNoDocuments) {
-			return invalidCredentials(c)
-		}
-		return err
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
 	}
 
 	if !types.IsValidPassword(user.EncryptedPassword, params.Password) {
-		return invalidCredentials(c)
+		invalidCredentials(w)
+		return
 	}
 
 	resp := AuthResponse{
@@ -71,7 +75,7 @@ func (h *AuthHandler) HandleAuth(c *fiber.Ctx) error {
 		Token: CreateTokenFromUser(user),
 	}
 
-	return c.JSON(resp)
+	renderJSON(w, http.StatusOK, resp)
 }
 
 func CreateTokenFromUser(user *types.User) string {
