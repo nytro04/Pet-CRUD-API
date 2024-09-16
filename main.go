@@ -3,9 +3,9 @@ package main
 import (
 	"fmt"
 	"log"
+	"net/http"
 	"os"
 
-	"github.com/gofiber/fiber/v2"
 	"github.com/joho/godotenv"
 	"github.com/nytro04/pet-crud/api"
 	"github.com/nytro04/pet-crud/db"
@@ -19,10 +19,10 @@ func main() {
 		dbPassword = os.Getenv("POSTGRES_DB_PASSWORD")
 	)
 
-	err := godotenv.Load()
-	if err != nil {
-		log.Fatal("failed to load env", err)
-	}
+	// err := godotenv.Load()
+	// if err != nil {
+	// 	log.Fatal("failed to load env", err)
+	// }
 
 	connStr := fmt.Sprintf(
 		"user=%s dbname=%s password=%s sslmode=disable", dbUser, dbName, dbPassword,
@@ -48,30 +48,42 @@ func main() {
 			User: userStore,
 		}
 
-		petHandler  = api.NewPetHandler(store)
-		userHandler = api.NewUserHandler(store)
+		petHandler = api.NewPetHandler(store)
+		// userHandler = api.NewUserHandler(store)
 
-		app   = fiber.New()
-		apiV1 = app.Group("/api/v1")
+		// app   = fiber.New()
+		// apiV1 = app.Group("/api/v1")
+
 	)
 
+	mux := http.NewServeMux()
 	// Pet handlers
-	apiV1.Post("/pet", petHandler.CreatePetHandler)
-	apiV1.Get("/pet/:id", petHandler.GetPetByIdHandler)
-	apiV1.Get("/pet", petHandler.GetPetsHandler)
-	apiV1.Patch("/pet/:id", petHandler.UpdatePetHandler)
-	apiV1.Delete("/pet/:id", petHandler.DeleteHandler)
+	mux.HandleFunc("POST /api/v1/pet/", petHandler.CreatePetHandler)
+	mux.HandleFunc("GET /api/v1/pet/{id}", petHandler.GetPetByIdHandler)
 
-	// User handlers
-	apiV1.Post("/user", userHandler.HandleCreateUser)
-	apiV1.Get("/user/:id", userHandler.HandleGetUser)
-	apiV1.Get("/user", userHandler.HandleGetUsers)
-	apiV1.Patch("/user/:id", userHandler.HandleUpdateUser)
-	apiV1.Delete("/user/:id", userHandler.HandleDeleteUser)
+	// apiV1.Post("/pet", petHandler.CreatePetHandler)
+	// apiV1.Get("/pet/:id", petHandler.GetPetByIdHandler)
+	// apiV1.Get("/pet", petHandler.GetPetsHandler)
+	// apiV1.Patch("/pet/:id", petHandler.UpdatePetHandler)
+	// apiV1.Delete("/pet/:id", petHandler.DeleteHandler)
+
+	// // User handlers
+	// apiV1.Post("/user", userHandler.HandleCreateUser)
+	// apiV1.Get("/user/:id", userHandler.HandleGetUser)
+	// apiV1.Get("/user", userHandler.HandleGetUsers)
+	// apiV1.Patch("/user/:id", userHandler.HandleUpdateUser)
+	// apiV1.Delete("/user/:id", userHandler.HandleDeleteUser)
 
 	listenAddr := os.Getenv("API_PORT")
 
-	app.Listen(listenAddr)
+	log.Printf("Starting server on %s\n", listenAddr)
+
+	err = http.ListenAndServe(listenAddr, mux)
+	if err != nil {
+		log.Fatalf("Error while starting the server: %s\n", err)
+	}
+
+	// app.Listen(listenAddr)
 }
 
 func init() {

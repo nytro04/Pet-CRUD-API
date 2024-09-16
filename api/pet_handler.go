@@ -1,6 +1,7 @@
 package api
 
 import (
+	"encoding/json"
 	"net/http"
 	"time"
 
@@ -19,11 +20,18 @@ func NewPetHandler(store *db.Store) *PetHandler {
 	}
 }
 
-func (h *PetHandler) CreatePetHandler(c *fiber.Ctx) error {
+// CreatePetHandler creates a new pet
+func (h *PetHandler) CreatePetHandler(w http.ResponseWriter, r *http.Request) {
+	if r.Method != http.MethodPost {
+		w.Header().Set("Allow", http.MethodPost)
+		http.Error(w, "Invalid request method", http.StatusMethodNotAllowed)
+		return
+	}
 	var params types.CreatePetParams
 
-	if err := c.BodyParser(&params); err != nil {
-		return err
+	if err := json.NewDecoder(r.Body).Decode(&params); err != nil {
+		http.Error(w, err.Error(), http.StatusBadRequest)
+		return
 	}
 
 	pet := &types.Pet{
@@ -34,24 +42,45 @@ func (h *PetHandler) CreatePetHandler(c *fiber.Ctx) error {
 		CreatedAt: time.Now().UTC(),
 	}
 
-	pet, err := h.store.Pet.CreatePet(c.Context(), pet)
+	pet, err := h.store.Pet.CreatePet(r.Context(), pet)
 	if err != nil {
-		return err
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
 	}
 
-	return c.Status(http.StatusCreated).JSON(pet)
+	// return JSON response
+	renderJSON(w, http.StatusCreated, pet)
 }
 
-func (h *PetHandler) GetPetByIdHandler(c *fiber.Ctx) error {
-	id := c.Params("id")
-
-	pet, err := h.store.Pet.GetPetById(c.Context(), id)
-	if err != nil {
-		return err
+// GetPetByIdHandler gets a pet by its ID
+func (h *PetHandler) GetPetByIdHandler(w http.ResponseWriter, r *http.Request) {
+	if r.Method != http.MethodGet {
+		w.Header().Set("Allow", http.MethodGet)
+		http.Error(w, "Invalid request method", http.StatusMethodNotAllowed)
+		return
 	}
 
-	return c.JSON(pet)
+	id := r.PathValue("id")
+	pet, err := h.store.Pet.GetPetById(r.Context(), id)
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+
+	// return JSON response
+	renderJSON(w, http.StatusOK, pet)
 }
+
+// func (h *PetHandler) GetPetByIdHandler(c *fiber.Ctx) error {
+// 	id := c.Params("id")
+
+// 	pet, err := h.store.Pet.GetPetById(c.Context(), id)
+// 	if err != nil {
+// 		return err
+// 	}
+
+// 	return c.JSON(pet)
+// }
 
 func (h *PetHandler) GetPetsHandler(c *fiber.Ctx) error {
 	pets, err := h.store.Pet.GetPets(c.Context())
