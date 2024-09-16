@@ -51,12 +51,10 @@ func main() {
 		petHandler = api.NewPetHandler(store)
 		// userHandler = api.NewUserHandler(store)
 
-		// app   = fiber.New()
-		// apiV1 = app.Group("/api/v1")
-
 	)
 
 	mux := http.NewServeMux()
+
 	// Pet handlers
 	mux.HandleFunc("POST /api/v1/pet/", petHandler.CreatePetHandler)
 	mux.HandleFunc("GET /api/v1/pet/{id}", petHandler.GetPetByIdHandler)
@@ -80,7 +78,6 @@ func main() {
 		log.Fatalf("Error while starting the server: %s\n", err)
 	}
 
-	// app.Listen(listenAddr)
 }
 
 func init() {
