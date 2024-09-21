@@ -55,14 +55,14 @@ func main() {
 	mux := http.NewServeMux()
 
 	// Pet handlers
-	mux.HandleFunc("POST /api/v1/pet/", petHandler.CreatePetHandler)
+	mux.HandleFunc("POST /api/v1/pet", petHandler.CreatePetHandler)
 	mux.HandleFunc("GET /api/v1/pet/{id}", petHandler.GetPetByIdHandler)
-	mux.HandleFunc("GET /api/v1/pet/", petHandler.GetPetsHandler)
+	mux.HandleFunc("GET /api/v1/pet", petHandler.GetPetsHandler)
 	mux.HandleFunc("PATCH /api/v1/pet/{id}", petHandler.UpdatePetHandler)
 	mux.HandleFunc("DELETE /api/v1/pet/{id}", petHandler.DeleteHandler)
 
 	// User handlers
-	mux.HandleFunc("POST /api/v1/user/", userHandler.HandleCreateUser)
+	mux.HandleFunc("POST /api/v1/user", userHandler.HandleCreateUser)
 
 	// apiV1.Post("/user", userHandler.HandleCreateUser)
 	// apiV1.Get("/user/:id", userHandler.HandleGetUser)

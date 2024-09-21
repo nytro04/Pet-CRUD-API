@@ -10,16 +10,17 @@ import (
 )
 
 type UserHandler struct {
-	userStore *db.Store
+	store *db.Store
 }
 
 // constructor/factory function
-func NewUserHandler(userStore *db.Store) *UserHandler {
+func NewUserHandler(store *db.Store) *UserHandler {
 	return &UserHandler{
-		userStore: userStore,
+		store: store,
 	}
 }
 
+// add new comment
 // User sign up
 func (h *UserHandler) HandleCreateUser(w http.ResponseWriter, r *http.Request) {
 	if r.Method != http.MethodPost {
@@ -41,7 +42,7 @@ func (h *UserHandler) HandleCreateUser(w http.ResponseWriter, r *http.Request) {
 		EncryptedPassword: params.Password,
 	}
 
-	insertedUser, err := h.userStore.User.CreateUser(r.Context(), user)
+	insertedUser, err := h.store.User.CreateUser(r.Context(), user)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
@@ -56,7 +57,7 @@ func (h *UserHandler) HandleGetUser(c *fiber.Ctx) error {
 		id = c.Params("id")
 	)
 
-	user, err := h.userStore.User.GetUserByID(c.Context(), id)
+	user, err := h.store.User.GetUserByID(c.Context(), id)
 	if err != nil {
 
 		return err
@@ -67,7 +68,7 @@ func (h *UserHandler) HandleGetUser(c *fiber.Ctx) error {
 }
 
 func (h *UserHandler) HandleGetUsers(c *fiber.Ctx) error {
-	users, err := h.userStore.User.GetUsers(c.Context())
+	users, err := h.store.User.GetUsers(c.Context())
 	if err != nil {
 		return err
 	}
@@ -85,12 +86,12 @@ func (h *UserHandler) HandleUpdateUser(c *fiber.Ctx) error {
 		return err
 	}
 
-	_, err := h.userStore.User.GetUserByID(c.Context(), userID)
+	_, err := h.store.User.GetUserByID(c.Context(), userID)
 	if err != nil {
 		return err
 	}
 
-	if err := h.userStore.User.UpdateUser(c.Context(), userID, params); err != nil {
+	if err := h.store.User.UpdateUser(c.Context(), userID, params); err != nil {
 		return err
 	}
 
@@ -106,12 +107,12 @@ func (h *UserHandler) HandleUpdateUser(c *fiber.Ctx) error {
 func (h *UserHandler) HandleDeleteUser(c *fiber.Ctx) error {
 	userID := c.Params("id")
 
-	user, err := h.userStore.User.GetUserByID(c.Context(), userID)
+	user, err := h.store.User.GetUserByID(c.Context(), userID)
 	if err != nil {
 		return err
 	}
 
-	_, err = h.userStore.User.DeleteUser(c.Context(), userID)
+	_, err = h.store.User.DeleteUser(c.Context(), userID)
 	if err != nil {
 		return err
 	}
