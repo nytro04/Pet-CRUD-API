@@ -68,15 +68,9 @@ func main() {
 	// User handlers
 	mux.HandleFunc("POST /api/v1/user", userHandler.HandleCreateUser)
 	mux.HandleFunc("GET /api/v1/user/{id}", userHandler.HandleGetUser)
-	// mux.HandleFunc("GET /api/v1/user", userHandler.HandleGetUsers)
-	// mux.HandleFunc("PATCH /api/v1/user/{id}", userHandler.HandleUpdateUser)
-	// mux.HandleFunc("DELETE /api/v1/user/{id}", userHandler.HandleDeleteUser)
-
-	// apiV1.Post("/user", userHandler.HandleCreateUser)
-	// apiV1.Get("/user/:id", userHandler.HandleGetUser)
-	// apiV1.Get("/user", userHandler.HandleGetUsers)
-	// apiV1.Patch("/user/:id", userHandler.HandleUpdateUser)
-	// apiV1.Delete("/user/:id", userHandler.HandleDeleteUser)
+	mux.HandleFunc("GET /api/v1/user", userHandler.HandleGetUsers)
+	mux.HandleFunc("PATCH /api/v1/user/{id}", userHandler.HandleUpdateUser)
+	mux.HandleFunc("DELETE /api/v1/user/{id}", userHandler.HandleDeleteUser)
 
 	log.Printf("Starting server on %s\n", listenAddr)
 
@@ -86,9 +80,3 @@ func main() {
 	}
 
 }
-
-// func init() {
-// 	if err := godotenv.Load(); err != nil {
-// 		log.Fatal(err)
-// 	}
-// }

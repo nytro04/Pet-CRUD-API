@@ -4,7 +4,6 @@ import (
 	"encoding/json"
 	"net/http"
 
-	"github.com/gofiber/fiber/v2"
 	"github.com/nytro04/pet-crud/db"
 	"github.com/nytro04/pet-crud/types"
 )
@@ -52,47 +51,54 @@ func (h *UserHandler) HandleCreateUser(w http.ResponseWriter, r *http.Request) {
 	renderJSON(w, http.StatusCreated, insertedUser)
 }
 
-func (h *UserHandler) HandleGetUser(c *fiber.Ctx) error {
-	var (
-		id = c.Params("id")
-	)
-
-	user, err := h.store.User.GetUserByID(c.Context(), id)
-	if err != nil {
-
-		return err
-
+// Get user by ID
+func (h *UserHandler) HandleGetUser(w http.ResponseWriter, r *http.Request) {
+	if r.Method != http.MethodGet {
+		w.Header().Set("Allow", http.MethodGet)
+		http.Error(w, "Invalid request method", http.StatusMethodNotAllowed)
+		return
 	}
 
-	return c.JSON(user)
-}
-
-func (h *UserHandler) HandleGetUsers(c *fiber.Ctx) error {
-	users, err := h.store.User.GetUsers(c.Context())
+	id := r.PathValue("id")
+	user, err := h.store.User.GetUserByID(r.Context(), id)
 	if err != nil {
-		return err
+		http.Error(w, err.Error(), http.StatusInternalServerError)
 	}
-	return c.JSON(users)
+
+	renderJSON(w, http.StatusOK, user)
 }
 
-func (h *UserHandler) HandleUpdateUser(c *fiber.Ctx) error {
+func (h *UserHandler) HandleGetUsers(w http.ResponseWriter, r *http.Request) {
+	users, err := h.store.User.GetUsers(r.Context())
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+
+	renderJSON(w, http.StatusOK, users)
+}
+
+// TODO: Update single property without losing the other properties typical PATCH, not PUT
+func (h *UserHandler) HandleUpdateUser(w http.ResponseWriter, r *http.Request) {
 	var (
-		// values bson.E
 		params *types.UpdateUserParams
-		userID = c.Params("id")
+		userID = r.PathValue("id")
 	)
 
-	if err := c.BodyParser(&params); err != nil {
-		return err
+	if err := json.NewDecoder(r.Body).Decode(&params); err != nil {
+		http.Error(w, err.Error(), http.StatusBadRequest)
+		return
 	}
 
-	_, err := h.store.User.GetUserByID(c.Context(), userID)
+	_, err := h.store.User.GetUserByID(r.Context(), userID)
 	if err != nil {
-		return err
+		http.Error(w, err.Error(), http.StatusNotFound)
+		return
 	}
 
-	if err := h.store.User.UpdateUser(c.Context(), userID, params); err != nil {
-		return err
+	if err := h.store.User.UpdateUser(r.Context(), userID, params); err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
 	}
 
 	responsePayload := types.User{
@@ -101,21 +107,23 @@ func (h *UserHandler) HandleUpdateUser(c *fiber.Ctx) error {
 		LastName:  params.LastName,
 	}
 
-	return c.JSON(responsePayload)
+	renderJSON(w, http.StatusOK, responsePayload)
 }
 
-func (h *UserHandler) HandleDeleteUser(c *fiber.Ctx) error {
-	userID := c.Params("id")
+func (h *UserHandler) HandleDeleteUser(w http.ResponseWriter, r *http.Request) {
+	userID := r.PathValue("id")
 
-	user, err := h.store.User.GetUserByID(c.Context(), userID)
+	_, err := h.store.User.GetUserByID(r.Context(), userID)
 	if err != nil {
-		return err
+		http.Error(w, err.Error(), http.StatusNotFound)
+		return
 	}
 
-	_, err = h.store.User.DeleteUser(c.Context(), userID)
+	_, err = h.store.User.DeleteUser(r.Context(), userID)
 	if err != nil {
-		return err
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
 	}
 
-	return c.JSON(user)
+	renderJSON(w, http.StatusOK, nil)
 }
