@@ -31,8 +31,6 @@ func main() {
 		"host=%s port=%s user=%s "+"password=%s dbname=%s sslmode=disable", host, dbPort, dbUser, dbPassword, dbName,
 	)
 
-	fmt.Println(connStr, "connStr")
-
 	dbConn, err := db.NewDB(connStr)
 	if err != nil {
 		log.Fatalf("Error while connecting to the database: %s\n", err)
@@ -41,10 +39,14 @@ func main() {
 	defer dbConn.Close()
 
 	petStore := db.NewPetStorage(dbConn)
-	petStore.Init()
+	if err := petStore.Init(); err != nil {
+		log.Fatalf("Error while initializing pet storage: %s\n", err)
+	}
 
 	userStore := db.NewUserStorage(dbConn)
-	userStore.Init()
+	if err := userStore.Init(); err != nil {
+		log.Fatalf("Error while initializing user storage: %s\n", err)
+	}
 
 	var (
 		store = &db.Store{
