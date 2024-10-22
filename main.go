@@ -13,25 +13,29 @@ import (
 
 func main() {
 
+	err := godotenv.Load()
+	if err != nil {
+		log.Fatal("failed to load env", err)
+	}
+
 	var (
 		dbUser     = os.Getenv("DB_USER")
 		dbName     = os.Getenv("POSTGRES_DB_NAME")
 		dbPassword = os.Getenv("POSTGRES_DB_PASSWORD")
+		dbPort     = os.Getenv("POSTGRES_DB_PORT")
+		host       = os.Getenv("HOST")
+		listenAddr = os.Getenv("API_PORT")
 	)
-
-	// err := godotenv.Load()
-	// if err != nil {
-	// 	log.Fatal("failed to load env", err)
-	// }
 
 	connStr := fmt.Sprintf(
-		"user=%s dbname=%s password=%s sslmode=disable", dbUser, dbName, dbPassword,
+		"host=%s port=%s user=%s "+"password=%s dbname=%s sslmode=disable", host, dbPort, dbUser, dbPassword, dbName,
 	)
+
+	fmt.Println(connStr, "connStr")
 
 	dbConn, err := db.NewDB(connStr)
 	if err != nil {
 		log.Fatalf("Error while connecting to the database: %s\n", err)
-
 	}
 
 	defer dbConn.Close()
@@ -63,14 +67,16 @@ func main() {
 
 	// User handlers
 	mux.HandleFunc("POST /api/v1/user", userHandler.HandleCreateUser)
+	mux.HandleFunc("GET /api/v1/user/{id}", userHandler.HandleGetUser)
+	// mux.HandleFunc("GET /api/v1/user", userHandler.HandleGetUsers)
+	// mux.HandleFunc("PATCH /api/v1/user/{id}", userHandler.HandleUpdateUser)
+	// mux.HandleFunc("DELETE /api/v1/user/{id}", userHandler.HandleDeleteUser)
 
 	// apiV1.Post("/user", userHandler.HandleCreateUser)
 	// apiV1.Get("/user/:id", userHandler.HandleGetUser)
 	// apiV1.Get("/user", userHandler.HandleGetUsers)
 	// apiV1.Patch("/user/:id", userHandler.HandleUpdateUser)
 	// apiV1.Delete("/user/:id", userHandler.HandleDeleteUser)
-
-	listenAddr := os.Getenv("API_PORT")
 
 	log.Printf("Starting server on %s\n", listenAddr)
 
@@ -81,8 +87,8 @@ func main() {
 
 }
 
-func init() {
-	if err := godotenv.Load(); err != nil {
-		log.Fatal(err)
-	}
-}
+// func init() {
+// 	if err := godotenv.Load(); err != nil {
+// 		log.Fatal(err)
+// 	}
+// }
