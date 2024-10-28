@@ -1,19 +1,28 @@
 package api
 
 import (
+	"context"
 	"encoding/json"
 	"net/http"
 
-	"github.com/nytro04/pet-crud/db"
 	"github.com/nytro04/pet-crud/types"
 )
 
+type UserStore interface {
+	GetUserByEmail(context.Context, string) (*types.User, error)
+	GetUserByID(context.Context, string) (*types.User, error)
+	GetUsers(context.Context) ([]*types.User, error)
+	CreateUser(context.Context, *types.User) (*types.User, error)
+	DeleteUser(context.Context, string) (*types.User, error)
+	UpdateUser(ctx context.Context, userId string, update *types.UpdateUserParams) error
+}
+
 type UserHandler struct {
-	store *db.Store
+	store UserStore
 }
 
 // constructor/factory function
-func NewUserHandler(store *db.Store) *UserHandler {
+func NewUserHandler(store UserStore) *UserHandler {
 	return &UserHandler{
 		store: store,
 	}
@@ -41,7 +50,7 @@ func (h *UserHandler) HandleCreateUser(w http.ResponseWriter, r *http.Request) {
 		EncryptedPassword: params.Password,
 	}
 
-	insertedUser, err := h.store.User.CreateUser(r.Context(), user)
+	insertedUser, err := h.store.CreateUser(r.Context(), user)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
@@ -60,7 +69,7 @@ func (h *UserHandler) HandleGetUser(w http.ResponseWriter, r *http.Request) {
 	}
 
 	id := r.PathValue("id")
-	user, err := h.store.User.GetUserByID(r.Context(), id)
+	user, err := h.store.GetUserByID(r.Context(), id)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 	}
@@ -69,7 +78,7 @@ func (h *UserHandler) HandleGetUser(w http.ResponseWriter, r *http.Request) {
 }
 
 func (h *UserHandler) HandleGetUsers(w http.ResponseWriter, r *http.Request) {
-	users, err := h.store.User.GetUsers(r.Context())
+	users, err := h.store.GetUsers(r.Context())
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
@@ -90,13 +99,13 @@ func (h *UserHandler) HandleUpdateUser(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	_, err := h.store.User.GetUserByID(r.Context(), userID)
+	_, err := h.store.GetUserByID(r.Context(), userID)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusNotFound)
 		return
 	}
 
-	if err := h.store.User.UpdateUser(r.Context(), userID, params); err != nil {
+	if err := h.store.UpdateUser(r.Context(), userID, params); err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
 	}
@@ -113,13 +122,13 @@ func (h *UserHandler) HandleUpdateUser(w http.ResponseWriter, r *http.Request) {
 func (h *UserHandler) HandleDeleteUser(w http.ResponseWriter, r *http.Request) {
 	userID := r.PathValue("id")
 
-	_, err := h.store.User.GetUserByID(r.Context(), userID)
+	_, err := h.store.GetUserByID(r.Context(), userID)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusNotFound)
 		return
 	}
 
-	_, err = h.store.User.DeleteUser(r.Context(), userID)
+	_, err = h.store.DeleteUser(r.Context(), userID)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return

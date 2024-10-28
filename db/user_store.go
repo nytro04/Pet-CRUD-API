@@ -7,15 +7,6 @@ import (
 	"github.com/nytro04/pet-crud/types"
 )
 
-type UserStore interface {
-	GetUserByEmail(context.Context, string) (*types.User, error)
-	GetUserByID(context.Context, string) (*types.User, error)
-	GetUsers(context.Context) ([]*types.User, error)
-	CreateUser(context.Context, *types.User) (*types.User, error)
-	DeleteUser(context.Context, string) (*types.User, error)
-	UpdateUser(ctx context.Context, userId string, update *types.UpdateUserParams) error
-}
-
 type UserStorage struct {
 	db *sql.DB
 }

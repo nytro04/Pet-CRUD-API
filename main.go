@@ -55,7 +55,7 @@ func main() {
 		}
 
 		petHandler  = api.NewPetHandler(store)
-		userHandler = api.NewUserHandler(store)
+		userHandler = api.NewUserHandler(store.User)
 	)
 
 	mux := http.NewServeMux()

@@ -8,12 +8,11 @@ import (
 	"time"
 
 	"github.com/golang-jwt/jwt/v5"
-	"github.com/nytro04/pet-crud/db"
 	"github.com/nytro04/pet-crud/types"
 )
 
 type AuthHandler struct {
-	userStore db.UserStore
+	userStore UserStore
 }
 
 type AuthParams struct {
@@ -32,7 +31,7 @@ type genericResp struct {
 }
 
 // constructor/factory function
-func NewAuthHandler(userStore db.UserStore) *AuthHandler {
+func NewAuthHandler(userStore UserStore) *AuthHandler {
 	return &AuthHandler{
 		userStore: userStore,
 	}
