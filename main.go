@@ -76,7 +76,7 @@ func main() {
 
 	log.Printf("Starting server on %s\n", listenAddr)
 
-	err = http.ListenAndServe(listenAddr, mux)
+	err = http.ListenAndServe("localhost:"+listenAddr, mux)
 	if err != nil {
 		log.Fatalf("Error while starting the server: %s\n", err)
 	}
