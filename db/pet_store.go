@@ -7,15 +7,6 @@ import (
 	"github.com/nytro04/pet-crud/types"
 )
 
-type PetStore interface {
-	CreatePet(context.Context, *types.Pet) (*types.Pet, error)
-	UpdatePet(context.Context, string, *types.CreatePetParams) error
-	GetPetById(context.Context, string) (*types.Pet, error)
-	GetPets(context.Context) ([]*types.Pet, error)
-	DeletePet(context.Context, string) (*types.Pet, error)
-	Close() error
-}
-
 type PetStorage struct {
 	db *sql.DB
 }

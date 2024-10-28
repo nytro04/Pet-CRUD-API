@@ -1,19 +1,28 @@
 package api
 
 import (
+	"context"
 	"encoding/json"
 	"net/http"
 	"time"
 
-	"github.com/nytro04/pet-crud/db"
 	"github.com/nytro04/pet-crud/types"
 )
 
-type PetHandler struct {
-	store *db.Store
+type PetStore interface {
+	CreatePet(context.Context, *types.Pet) (*types.Pet, error)
+	UpdatePet(context.Context, string, *types.CreatePetParams) error
+	GetPetById(context.Context, string) (*types.Pet, error)
+	GetPets(context.Context) ([]*types.Pet, error)
+	DeletePet(context.Context, string) (*types.Pet, error)
+	Close() error
 }
 
-func NewPetHandler(store *db.Store) *PetHandler {
+type PetHandler struct {
+	store PetStore
+}
+
+func NewPetHandler(store PetStore) *PetHandler {
 	return &PetHandler{
 		store: store,
 	}
@@ -41,7 +50,7 @@ func (h *PetHandler) CreatePetHandler(w http.ResponseWriter, r *http.Request) {
 		CreatedAt: time.Now().UTC(),
 	}
 
-	pet, err := h.store.Pet.CreatePet(r.Context(), pet)
+	pet, err := h.store.CreatePet(r.Context(), pet)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
@@ -60,7 +69,7 @@ func (h *PetHandler) GetPetByIdHandler(w http.ResponseWriter, r *http.Request) {
 	}
 
 	id := r.PathValue("id")
-	pet, err := h.store.Pet.GetPetById(r.Context(), id)
+	pet, err := h.store.GetPetById(r.Context(), id)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
@@ -78,7 +87,7 @@ func (h *PetHandler) GetPetsHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	pets, err := h.store.Pet.GetPets(r.Context())
+	pets, err := h.store.GetPets(r.Context())
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
@@ -106,7 +115,7 @@ func (h *PetHandler) UpdatePetHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	_, err := h.store.Pet.GetPetById(r.Context(), petId)
+	_, err := h.store.GetPetById(r.Context(), petId)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
@@ -114,7 +123,7 @@ func (h *PetHandler) UpdatePetHandler(w http.ResponseWriter, r *http.Request) {
 
 	// @TODO: fix bug: patch does not keep the unchanged fields, it sets them to zero values
 
-	err = h.store.Pet.UpdatePet(r.Context(), petId, &updatePayload)
+	err = h.store.UpdatePet(r.Context(), petId, &updatePayload)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
@@ -133,13 +142,13 @@ func (h *PetHandler) DeleteHandler(w http.ResponseWriter, r *http.Request) {
 	}
 
 	id := r.PathValue("id")
-	pet, err := h.store.Pet.GetPetById(r.Context(), id)
+	pet, err := h.store.GetPetById(r.Context(), id)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
 	}
 
-	_, err = h.store.Pet.DeletePet(r.Context(), id)
+	_, err = h.store.DeletePet(r.Context(), id)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return

@@ -54,7 +54,7 @@ func main() {
 			User: userStore,
 		}
 
-		petHandler  = api.NewPetHandler(store)
+		petHandler  = api.NewPetHandler(store.Pet)
 		userHandler = api.NewUserHandler(store.User)
 	)
 
