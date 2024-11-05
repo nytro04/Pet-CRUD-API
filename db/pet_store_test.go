@@ -98,17 +98,11 @@ func TestUpdatePet(t *testing.T) {
 	// create a new PetStorage object with the mock object
 	// create a new context
 	ctx := context.Background()
-	// convert pet to CreatePetParams
-	createPetParams := &types.CreatePetParams{
-		Name:  "dog",
-		Age:   2,
-		Owner: "owner",
-		Type:  "dog",
-	}
+
 	// mock the UpdatePet function
-	mock.On("UpdatePet", ctx, "1", createPetParams).Return(nil)
+	mock.On("UpdatePet", ctx, "1", &types.CreatePetParams{Name: "kiwi"}).Return(nil)
 	// call the UpdatePet function
-	err := mock.UpdatePet(ctx, "1", createPetParams)
+	err := mock.UpdatePet(ctx, "1", &types.CreatePetParams{Name: "kiwi"})
 	// assert the error
 	assert.Nil(t, err)
 	// assert that the mock was called
